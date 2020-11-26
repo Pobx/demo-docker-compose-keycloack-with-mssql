@@ -1,0 +1,39 @@
+version: "3.8"
+
+services: 
+  mssql-server:
+    container_name: mssql
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    ports:
+      - 1433:1433
+    environment: 
+     - ACCEPT_EULA=Y
+     - SA_PASSWORD=P@ssword1234
+     - MSSQL_PID=Express
+    networks: 
+      - my-pobx-network
+
+  mssql-tools:
+    container_name: mssql-tools
+    image: mcr.microsoft.com/mssql-tools:latest
+    command: /bin/bash -c 'until /opt/mssql-tools/bin/sqlcmd -S mssql -U sa -P "P@ssword1234" -Q "CREATE DATABASE keycloak"; do sleep 5; done'
+    networks: 
+      - my-pobx-network
+
+  keycloack-server:
+    container_name: keycloak
+    image: jboss/keycloak
+    ports: 
+      - 8080:8080
+    environment: 
+      - KEYCLOAK_USER=admin
+      - KEYCLOAK_PASSWORD=admin
+      - DB_VENDOR=mssql
+      - DB_USER=sa
+      - DB_PASSWORD=P@ssword1234
+      - DB_DATABASE=keycloak
+    networks: 
+      - my-pobx-network
+networks: 
+  my-pobx-network:
+    driver: bridge
